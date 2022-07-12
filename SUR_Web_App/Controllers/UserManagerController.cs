@@ -8,11 +8,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SUR_Web_App.Controllers
 {
-    public class UserRolesController : Controller
+    public class UserManagerController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public UserRolesController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        public UserManagerController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _roleManager = roleManager;
             _userManager = userManager;
@@ -147,7 +147,7 @@ namespace SUR_Web_App.Controllers
             };
         }
         
-        public async Task<IActionResult> Manageuser(string userId)
+        public async Task<IActionResult> ManageUser(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)

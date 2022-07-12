@@ -8,7 +8,7 @@ namespace SUR_Web_App.Views.UserRoles
         public static string Email => "Email";
         public static string ChangePassword => "ChangePassword";
         public static string DeleteData => "DeleteData";
-        public static string ManageUserNavPage(ViewContext viewContext) => PageNavClass(viewContext, ManageUser);
+        public static string ManageUserNavClass(ViewContext viewContext) => PageNavClass(viewContext, ManageUser);
         public static string EmailNavClass(ViewContext viewContext) => PageNavClass(viewContext, Email);
         public static string ChangePasswordNavClass(ViewContext viewContext) => PageNavClass(viewContext, ChangePassword);
         public static string DeleteDataNavClass(ViewContext viewContext) => PageNavClass(viewContext, DeleteData);
