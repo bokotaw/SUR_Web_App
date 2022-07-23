@@ -39,7 +39,7 @@ namespace SUR_Web_App.Controllers
             return new List<string>(await _userManager.GetRolesAsync(user));
         }
 
-        public async Task<IActionResult> Manage(string userId)
+        public async Task<IActionResult> ManageRoles(string userId)
         {
             ViewBag.userId = userId;
             var user = await _userManager.FindByIdAsync(userId);
@@ -70,7 +70,7 @@ namespace SUR_Web_App.Controllers
             return View(model);
         }
         [HttpPost]
-        public async Task<IActionResult> Manage(List<ManageUserRolesViewModel> model, string userId, string userName)
+        public async Task<IActionResult> ManageRoles(List<ManageUserRolesViewModel> model, string userId, string userName)
         {
             //var username = await _userManager.FindByNameAsync(userName);
             var user = await _userManager.FindByIdAsync(userId);
@@ -93,70 +93,5 @@ namespace SUR_Web_App.Controllers
             }
             return RedirectToAction("Index");
         }
-
-        public string Username { get; set; }
-        [BindProperty]
-        public InputModel Input { get; set; }
-
-        public class InputModel
-        {
-            [Display(Name = "First Name")]
-            public string FirstName { get; set; }
-            [Display(Name = "Last Name")]
-            public string LastName { get; set; }
-            [Display(Name = "Username")]
-            public string Username { get; set; }
-            [Phone]
-            [Display(Name = "Phone number")]
-            public string PhoneNumber { get; set; }
-            [Display(Name = "Profile Picture")]
-            public byte[] ProfilePicture { get; set; }
-            [Required]
-            [DataType(DataType.Password)]
-            [Display(Name = "Current password")]
-            public string OldPassword { get; set; }
-            [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-            [DataType(DataType.Password)]
-            [Display(Name = "New password")]
-            public string NewPassword { get; set; }
-            [DataType(DataType.Password)]
-            [Display(Name = "Confirm new password")]
-            [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
-            public string ConfirmPassword { get; set; }
-        }
-
-        public async Task LoadAsync(string userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            var userName = await _userManager.GetUserNameAsync(user);
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-            var firstName = user.FirstName;
-            var lastName = user.LastName;
-            var profilePicture = user.ProfilePicture;
-
-            Username = userName;
-
-            Input = new InputModel
-            {
-                PhoneNumber = phoneNumber,
-                Username = userName,
-                FirstName = firstName,
-                LastName = lastName,
-                ProfilePicture = profilePicture
-            };
-        }
-        
-        public async Task<IActionResult> ManageUser(string userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                return NotFound($"Unable to load user with ID '{ userId }'.");
-            }
-            await LoadAsync(userId);
-            return View(user);
-        }
-
     }
 }
