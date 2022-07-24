@@ -29,6 +29,8 @@ namespace SUR_Web_App.Areas.Identity.Pages.Account.Manage
             _logger = logger;
         }
 
+        public const string SessionUserId = "_UserId";
+
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
@@ -80,7 +82,14 @@ namespace SUR_Web_App.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnGetAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
+            if (!string.IsNullOrEmpty(Request.Query["userId"]))
+            {
+                HttpContext.Session.SetString(SessionUserId, Request.Query["userId"]);
+            }
+
+            string uid = HttpContext.Session.GetString(SessionUserId);
+
+            var user = _userManager.Users.FirstOrDefault(u => u.Id == uid);
             if (user == null)
             {
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
@@ -102,7 +111,9 @@ namespace SUR_Web_App.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
-            var user = await _userManager.GetUserAsync(User);
+            string userId = HttpContext.Session.GetString(SessionUserId);
+            var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
+
             if (user == null)
             {
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");

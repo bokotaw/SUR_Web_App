@@ -32,6 +32,8 @@ namespace SUR_Web_App.Areas.Identity.Pages.Account.Manage
             _emailSender = emailSender;
         }
 
+        public const string SessionUserId = "_UserId";
+
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
@@ -74,8 +76,9 @@ namespace SUR_Web_App.Areas.Identity.Pages.Account.Manage
             public string NewEmail { get; set; }
         }
 
-        private async Task LoadAsync(ApplicationUser user)
+        private async Task LoadAsync(string userId)
         {
+            var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
             var email = await _userManager.GetEmailAsync(user);
             Email = email;
 
@@ -89,19 +92,27 @@ namespace SUR_Web_App.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnGetAsync()
         {
+            if (!string.IsNullOrEmpty(Request.Query["userId"]))
+            {
+                HttpContext.Session.SetString(SessionUserId, Request.Query["userId"]);
+            }
+
+            string uid = HttpContext.Session.GetString(SessionUserId);
+
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
-            await LoadAsync(user);
+            await LoadAsync(uid);
             return Page();
         }
 
         public async Task<IActionResult> OnPostChangeEmailAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
+            string userId = HttpContext.Session.GetString(SessionUserId);
+            var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
             if (user == null)
             {
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
@@ -109,14 +120,14 @@ namespace SUR_Web_App.Areas.Identity.Pages.Account.Manage
 
             if (!ModelState.IsValid)
             {
-                await LoadAsync(user);
+                await LoadAsync(userId);
                 return Page();
             }
 
             var email = await _userManager.GetEmailAsync(user);
             if (Input.NewEmail != email)
             {
-                var userId = await _userManager.GetUserIdAsync(user);
+                var uId = await _userManager.GetUserIdAsync(user);
                 var code = await _userManager.GenerateChangeEmailTokenAsync(user, Input.NewEmail);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                 var callbackUrl = Url.Page(
@@ -137,36 +148,36 @@ namespace SUR_Web_App.Areas.Identity.Pages.Account.Manage
             return RedirectToPage();
         }
 
-        public async Task<IActionResult> OnPostSendVerificationEmailAsync()
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
-            }
+        //public async Task<IActionResult> OnPostSendVerificationEmailAsync()
+        //{
+        //    var user = await _userManager.GetUserAsync(User);
+        //    if (user == null)
+        //    {
+        //        return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+        //    }
 
-            if (!ModelState.IsValid)
-            {
-                await LoadAsync(user);
-                return Page();
-            }
+        //    if (!ModelState.IsValid)
+        //    {
+        //        await LoadAsync(user);
+        //        return Page();
+        //    }
 
-            var userId = await _userManager.GetUserIdAsync(user);
-            var email = await _userManager.GetEmailAsync(user);
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = Url.Page(
-                "/Account/ConfirmEmail",
-                pageHandler: null,
-                values: new { area = "Identity", userId = userId, code = code },
-                protocol: Request.Scheme);
-            await _emailSender.SendEmailAsync(
-                email,
-                "Confirm your email",
-                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+        //    var userId = await _userManager.GetUserIdAsync(user);
+        //    var email = await _userManager.GetEmailAsync(user);
+        //    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        //    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        //    var callbackUrl = Url.Page(
+        //        "/Account/ConfirmEmail",
+        //        pageHandler: null,
+        //        values: new { area = "Identity", userId = userId, code = code },
+        //        protocol: Request.Scheme);
+        //    await _emailSender.SendEmailAsync(
+        //        email,
+        //        "Confirm your email",
+        //        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
-            StatusMessage = "Verification email sent. Please check your email.";
-            return RedirectToPage();
-        }
+        //    StatusMessage = "Verification email sent. Please check your email.";
+        //    return RedirectToPage();
+        //}
     }
 }
